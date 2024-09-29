@@ -2,4 +2,6 @@
 
 namespace App\Exceptions;
 
-class PaymentGatewayException extends \Exception {}
+class PaymentGatewayException extends \Exception
+{
+}

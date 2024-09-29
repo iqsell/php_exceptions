@@ -4,43 +4,55 @@ namespace App;
 
 use App\Exceptions\PaymentGatewayException;
 use App\Exceptions\InsufficientFundsException;
-class Checkout {
-    private $cart;
-    private $paymentMethod;
 
-    public function __construct(Cart $cart) {
+class Checkout
+{
+    private Cart $cart;
+    private string $paymentMethod;
+    private int $userBalance;
+
+    public function __construct(Cart $cart, int $userBalance)
+    {
         $this->cart = $cart;
+        $this->userBalance = $userBalance;
     }
 
-    public function setPaymentMethod($method) {
+    public function setPaymentMethod(string $method): void
+    {
         $this->paymentMethod = $method;
     }
 
     /**
-     * @throws PaymentGatewayException
-     * @throws InsufficientFundsException
+     * Обработка платежа.
+     *
+     * @param  int $amount Сумма платежа.
+     * @throws PaymentGatewayException Если произошла ошибка при оплате.
+     * @throws InsufficientFundsException Если на счете недостаточно средств.
      */
-    public function processPayment($amount) {
-        // Например, процесс оплаты
-        if ($amount > 1000) {
-            throw new PaymentGatewayException("Payment gateway failed.");
+    public function processPayment(int $amount): void
+    {
+        if ($amount > $this->userBalance) {
+            throw new InsufficientFundsException("Недостаточно средств.");
         }
 
-        $userBalance = 500;
-        if ($amount > $userBalance) {
-            throw new InsufficientFundsException("Insufficient funds.");
+        // Симуляция платежного процесса
+        if ($this->paymentMethod !== 'credit card') {
+            throw new PaymentGatewayException("Ошибка платежного шлюза.");
         }
+
+        // Успешный платеж
+        $this->userBalance -= $amount;
+        echo "Платеж на сумму $amount успешно обработан с использованием метода $this->paymentMethod.\n";
     }
 
-    public function finalizeOrder() {
-        $total = $this->cart->getTotal();
+
+    public function finalizeOrder(): void
+    {
+        $totalAmount = $this->cart->getTotal(); // Получение общей суммы корзины
         try {
-            $this->processPayment($total);
-            echo "Payment of $total processed successfully using " . $this->paymentMethod . ".\n";
-        } catch (PaymentGatewayException $e) {
-            echo "Payment failed: " . $e->getMessage() . "\n";
-        } catch (InsufficientFundsException $e) {
-            echo "Payment failed: " . $e->getMessage() . "\n";
+            $this->processPayment($totalAmount);
+        } catch (InsufficientFundsException | PaymentGatewayException $e) {
+            echo "Ошибка при оплате: " . $e->getMessage();
         }
     }
 }

@@ -2,4 +2,6 @@
 
 namespace App\Exceptions;
 
-class OutOfStockException extends \Exception {}
+class OutOfStockException extends \Exception
+{
+}
